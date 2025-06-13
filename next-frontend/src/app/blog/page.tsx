@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { BlogPost, Category, Tag } from '@/types';
-import { getBlogPosts, getCategories, getTags } from '@/services/api';
+import { fetchPosts, fetchCategories, fetchTags } from '@/services/api';
 
 export default function BlogPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -21,9 +21,9 @@ export default function BlogPage() {
       setIsLoading(true);
       try {
         const [postsData, categoriesData, tagsData] = await Promise.all([
-          getBlogPosts(),
-          getCategories(),
-          getTags()
+          fetchPosts(),
+          fetchCategories(),
+          fetchTags()
         ]);
         setPosts(postsData);
         setCategories(categoriesData);

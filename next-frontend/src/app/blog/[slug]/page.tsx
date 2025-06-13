@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { BlogPost } from '@/types';
-import { getBlogPostBySlug, getBlogPosts } from '@/services/api';
+import { fetchPostBySlug, fetchPosts } from '@/services/api';
 
 export default function BlogPostPage() {
   const params = useParams();
@@ -22,11 +22,11 @@ export default function BlogPostPage() {
         if (!params.slug) return;
         
         const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
-        const postData = await getBlogPostBySlug(slug);
+        const postData = await fetchPostBySlug(slug);
         setPost(postData);
         
         // Fetch related posts from the same category
-        const allPosts = await getBlogPosts();
+        const allPosts = await fetchPosts();
         const related = allPosts
           .filter((p: BlogPost) => p.id !== postData.id && p.category.id === postData.category.id)
           .slice(0, 3);

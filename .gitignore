@@ -171,3 +171,4 @@ next-frontend/.DS_Store
 next-frontend/.next
 next-frontend/yarn-error.log
 next-frontend/npm-debug.log
+node_modules
