@@ -165,6 +165,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <ReactMarkdown>{post.content || ''}</ReactMarkdown>
         </article>
         
+        {/* Blog Interaction Bar */}
+        <div className="my-8">
+          <BlogInteractionBar 
+            slug={slug}
+            likesCount={post.likes_count || 0}
+            userHasLiked={post.user_has_liked || false}
+            userRating={post.user_rating}
+            averageRating={post.average_rating}
+          />
+        </div>
+        
         {/* Post Footer */}
         <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">
           <div className="flex justify-between items-center">

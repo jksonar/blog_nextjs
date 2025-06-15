@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -53,6 +54,34 @@ class BlogPost(models.Model):
         if not self.slug:
             self.slug = slugify(self.title)
         super().save(*args, **kwargs)
+
+
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='likes')
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
+        unique_together = ('user', 'post')
+        verbose_name = 'Like'
+        verbose_name_plural = 'Likes'
+    
+    def __str__(self):
+        return f"{self.user.username} likes {self.post.title}"
+
+
+class Rating(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='ratings')
+    value = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'post')
+        verbose_name = 'Rating'
+        verbose_name_plural = 'Ratings'
         ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username} rated {self.post.title} {self.value}/5"

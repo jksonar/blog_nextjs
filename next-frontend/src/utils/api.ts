@@ -38,6 +38,10 @@ export interface BlogPost {
   updated_at: string;
   featured_image: string | null;
   publish_date: string | null;
+  likes_count?: number;
+  user_has_liked?: boolean;
+  average_rating?: number | null;
+  user_rating?: number | null;
 }
 
 // API functions
@@ -77,6 +81,36 @@ export const fetchTags = async () => {
     return response.data;
   } catch (error) {
     console.error('Error fetching tags:', error);
+    throw error;
+  }
+};
+
+export const likeBlogPost = async (slug: string) => {
+  try {
+    const response = await api.post(`/posts/${slug}/like/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error liking blog post with slug ${slug}:`, error);
+    throw error;
+  }
+};
+
+export const unlikeBlogPost = async (slug: string) => {
+  try {
+    const response = await api.post(`/posts/${slug}/unlike/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error unliking blog post with slug ${slug}:`, error);
+    throw error;
+  }
+};
+
+export const rateBlogPost = async (slug: string, value: number) => {
+  try {
+    const response = await api.post(`/posts/${slug}/rate/`, { value });
+    return response.data;
+  } catch (error) {
+    console.error(`Error rating blog post with slug ${slug}:`, error);
     throw error;
   }
 };
