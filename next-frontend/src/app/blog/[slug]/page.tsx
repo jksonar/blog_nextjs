@@ -124,7 +124,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             </span>
             <div className="flex space-x-2">
               <a 
-                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(window.location.href)}`}
+                href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.title)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-blue-400"
@@ -135,7 +135,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </svg>
               </a>
               <a 
-                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                href="https://www.facebook.com/sharer/sharer.php"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-blue-600"
@@ -146,7 +146,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
                 </svg>
               </a>
               <a 
-                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+                href="https://www.linkedin.com/sharing/share-offsite/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-blue-700"

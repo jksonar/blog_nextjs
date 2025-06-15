@@ -19,7 +19,9 @@ interface BlogPageProps {
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   // Get filter parameters from URL
-  const { category, tag, page = '1' } = searchParams;
+  const category = searchParams?.category;
+  const tag = searchParams?.tag;
+  const page = searchParams?.page || '1';
   const currentPage = parseInt(page, 10) || 1;
   
   // Fetch blog posts with filters
@@ -28,8 +30,12 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
   const totalPosts = blogData.count || 0;
   
   // Fetch categories and tags for filters
-  const categories = await fetchCategories().catch(() => []);
-  const tags = await fetchTags().catch(() => []);
+  const categoriesData = await fetchCategories().catch(() => ({ results: [] }));
+  const tagsData = await fetchTags().catch(() => ({ results: [] }));
+  
+  // Extract the results arrays
+  const categories = Array.isArray(categoriesData) ? categoriesData : (categoriesData.results || []);
+  const tags = Array.isArray(tagsData) ? tagsData : (tagsData.results || []);
   
   // Calculate pagination
   const postsPerPage = 9;
