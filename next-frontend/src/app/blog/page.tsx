@@ -19,10 +19,10 @@ interface BlogPageProps {
 
 export default async function BlogPage({ searchParams }: BlogPageProps) {
   // Get filter parameters from URL
-  const category = searchParams?.category;
-  const tag = searchParams?.tag;
-  const page = searchParams?.page || '1';
-  const currentPage = parseInt(page, 10) || 1;
+  const category = searchParams?.category || null;
+  const tag = searchParams?.tag || null;
+  const pageParam = searchParams?.page || '1';
+  const currentPage = parseInt(String(pageParam), 10) || 1;
   
   // Fetch blog posts with filters
   const blogData = await fetchBlogPosts({ category, tag }).catch(() => ({ results: [], count: 0 }));
