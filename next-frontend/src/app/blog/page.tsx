@@ -10,7 +10,7 @@ export const metadata = {
   description: 'Browse all our blog posts',
 };
 
-export default async function BlogPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+export default async function BlogPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   // Fetch blog posts without filters initially
   const blogData = await fetchBlogPosts({}).catch(() => ({ results: [], count: 0 }));
   const posts = blogData.results || [];
@@ -27,7 +27,11 @@ export default async function BlogPage({ searchParams }: { searchParams: Record<
   // Calculate pagination
   const postsPerPage = 9;
   const totalPages = Math.ceil(totalPosts / postsPerPage);
-  const currentPage = searchParams.page ? parseInt(searchParams.page as string, 10) : 1;
+  
+  // Properly await searchParams before accessing its properties
+  const params = await searchParams;
+  const pageParam = params?.page;
+  const currentPage = pageParam ? parseInt(pageParam as string, 10) : 1;
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
