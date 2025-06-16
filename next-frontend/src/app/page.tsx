@@ -13,6 +13,15 @@ export default async function Home() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Hero Section */}
       <section className="text-center mb-16">
+        <div className="relative w-full h-64 md:h-80 mx-auto mb-8 max-w-4xl rounded-xl overflow-hidden">
+          <Image
+            src="/images/blog-hero.jpg"
+            alt="Blog Hero Image"
+            fill
+            className="object-cover"
+            priority
+          />
+        </div>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
           Welcome to Our Blog
         </h1>

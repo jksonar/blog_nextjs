@@ -3,13 +3,14 @@ import { fetchBlogPosts, fetchCategories, fetchTags } from '@/utils/api';
 import BlogCard from '@/components/BlogCard';
 import SkeletonCard from '@/components/SkeletonCard';
 import Link from 'next/link';
+import Pagination from '@/components/Pagination';
 
 export const metadata = {
   title: 'Blog Posts - Blog Site',
   description: 'Browse all our blog posts',
 };
 
-export default async function BlogPage() {
+export default async function BlogPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
   // Fetch blog posts without filters initially
   const blogData = await fetchBlogPosts({}).catch(() => ({ results: [], count: 0 }));
   const posts = blogData.results || [];
@@ -26,6 +27,7 @@ export default async function BlogPage() {
   // Calculate pagination
   const postsPerPage = 9;
   const totalPages = Math.ceil(totalPosts / postsPerPage);
+  const currentPage = searchParams.page ? parseInt(searchParams.page as string, 10) : 1;
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -100,29 +102,7 @@ export default async function BlogPage() {
       
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="mt-12 flex justify-center">
-          <nav className="inline-flex rounded-md shadow">
-            {Array.from({ length: totalPages }).map((_, i) => {
-              const pageNum = i + 1;
-              const isCurrentPage = pageNum === currentPage;
-              const pageUrl = new URLSearchParams(searchParams);
-              pageUrl.set('page', pageNum.toString());
-              
-              return (
-                <Link
-                  key={pageNum}
-                  href={`/blog?${pageUrl.toString()}`}
-                  className={`px-4 py-2 text-sm font-medium ${isCurrentPage
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  {pageNum}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+        <Pagination totalPages={totalPages} currentPage={currentPage} />
       )}
     </div>
   );
