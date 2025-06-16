@@ -1,9 +1,7 @@
-import axios from 'axios';
+import axiosInstance from './axiosConfig';
 
-// Create axios instance with base URL
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api',
-});
+// Use the configured axios instance with JWT authentication
+const api = axiosInstance;
 
 // Types based on Django models
 export interface User {

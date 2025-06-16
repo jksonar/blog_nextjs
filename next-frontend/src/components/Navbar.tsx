@@ -1,13 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiMenu, FiX, FiUser, FiLogOut } from 'react-icons/fi';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -18,6 +21,12 @@ const Navbar = () => {
     { name: 'Blog', path: '/blog' },
     { name: 'Categories', path: '/blog/categories' },
   ];
+  
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav className="bg-white dark:bg-gray-900 shadow-sm sticky top-0 z-10">
@@ -44,6 +53,40 @@ const Navbar = () => {
                   {link.name}
                 </Link>
               ))}
+            </div>
+            
+            {/* Authentication links */}
+            <div className="ml-4 flex items-center space-x-2">
+              {isAuthenticated ? (
+                <>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">
+                    {user?.username}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <FiLogOut className="mr-1" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <FiUser className="mr-1" />
+                    Login
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="flex items-center px-3 py-2 rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
             </div>
           </div>
           
@@ -83,6 +126,46 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
+            
+            {/* Mobile authentication links */}
+            <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
+              {isAuthenticated ? (
+                <>
+                  <div className="px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300">
+                    Signed in as {user?.username}
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <div className="flex items-center">
+                      <FiLogOut className="mr-2" />
+                      Logout
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <div className="flex items-center">
+                      <FiUser className="mr-2" />
+                      Login
+                    </div>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="block px-3 py-2 rounded-md text-base font-medium bg-indigo-600 text-white hover:bg-indigo-700 mt-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Register
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
