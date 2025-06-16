@@ -6,6 +6,8 @@ import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import { FiCalendar, FiUser, FiTag, FiFolder, FiShare2 } from 'react-icons/fi';
 import { fetchBlogPostBySlug } from '@/utils/api';
+import BlogInteractionBar from '@/components/BlogInteractionBar';
+import CommentSection from '@/components/CommentSection';
 
 interface BlogPostPageProps {
   params: {
@@ -175,6 +177,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             averageRating={post.average_rating}
           />
         </div>
+        
+        {/* Comments Section */}
+        <CommentSection slug={slug} />
         
         {/* Post Footer */}
         <footer className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800">

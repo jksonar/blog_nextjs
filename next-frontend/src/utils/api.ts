@@ -42,6 +42,18 @@ export interface BlogPost {
   user_has_liked?: boolean;
   average_rating?: number | null;
   user_rating?: number | null;
+  comments?: Comment[];
+}
+
+export interface Comment {
+  id: number;
+  post: number;
+  user: User;
+  content: string;
+  parent: number | null;
+  created_at: string;
+  updated_at: string;
+  replies?: Comment[];
 }
 
 // API functions
@@ -111,6 +123,51 @@ export const rateBlogPost = async (slug: string, value: number) => {
     return response.data;
   } catch (error) {
     console.error(`Error rating blog post with slug ${slug}:`, error);
+    throw error;
+  }
+};
+
+// Comment-related API functions
+export const fetchComments = async (postSlug: string) => {
+  try {
+    const response = await api.get(`/posts/${postSlug}/comments/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching comments for post ${postSlug}:`, error);
+    throw error;
+  }
+};
+
+export const createComment = async (postSlug: string, content: string, parentId?: number) => {
+  try {
+    const data: { content: string; parent?: number } = { content };
+    if (parentId) {
+      data.parent = parentId;
+    }
+    const response = await api.post(`/posts/${postSlug}/comments/`, data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error creating comment for post ${postSlug}:`, error);
+    throw error;
+  }
+};
+
+export const updateComment = async (commentId: number, content: string) => {
+  try {
+    const response = await api.put(`/comments/${commentId}/`, { content });
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating comment ${commentId}:`, error);
+    throw error;
+  }
+};
+
+export const deleteComment = async (commentId: number) => {
+  try {
+    const response = await api.delete(`/comments/${commentId}/`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting comment ${commentId}:`, error);
     throw error;
   }
 };
