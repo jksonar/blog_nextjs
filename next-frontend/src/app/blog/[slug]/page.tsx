@@ -12,14 +12,14 @@ import CommentSection from '@/components/CommentSection';
 import SocialShareButtons from '@/components/SocialShareButtons';
 
 interface BlogPostPageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // Generate metadata for the page
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     const post = await fetchBlogPostBySlug(slug);
@@ -42,7 +42,9 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
         ] : [],
       },
     };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    // Error is used to determine the fallback metadata
     return {
       title: 'Blog Post Not Found - Blog Site',
       description: 'The requested blog post could not be found',
@@ -51,7 +53,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
 }
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
-  const { slug } = params;
+  const { slug } = await params;
   
   try {
     const post = await fetchBlogPostBySlug(slug);
@@ -136,8 +138,8 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             slug={slug}
             likesCount={post.likes_count || 0}
             userHasLiked={post.user_has_liked || false}
-            userRating={post.user_rating}
-            averageRating={post.average_rating}
+            userRating={post.user_rating ?? null}
+            averageRating={post.average_rating ?? null}
           />
         </div>
         
@@ -149,15 +151,17 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
           <div className="flex justify-between items-center">
             <Link 
               href="/blog"
-              className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
             >
-              ← Back to all posts
+              &larr; Back to Blog
             </Link>
           </div>
         </footer>
       </div>
     );
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    // Error is used to trigger the notFound() function
     notFound();
   }
 }
