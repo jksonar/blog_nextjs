@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import BlogPost, Category, Tag
+from .models import BlogPost, Category, Tag, Like, Rating, Comment
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -33,3 +33,22 @@ class BlogPostAdmin(admin.ModelAdmin):
             'fields': ('author', 'is_published', 'publish_date')
         }),
     )
+
+@admin.register(Like)
+class LikeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'post__title')
+
+@admin.register(Rating)
+class RatingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'value', 'created_at')
+    list_filter = ('value', 'created_at')
+    search_fields = ('user__username', 'post__title')
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'parent', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'post__title', 'content')
+    readonly_fields = ('created_at', 'updated_at')

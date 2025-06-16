@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import BlogPost, Category, Tag, Like, Rating
+from .models import BlogPost, Category, Tag, Like, Rating, Comment
 from django.contrib.auth.models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -48,6 +48,21 @@ class RatingSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    replies = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Comment
+        fields = ['id', 'post', 'user', 'content', 'parent', 'created_at', 'updated_at', 'replies']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+    
+    def get_replies(self, obj):
+        if obj.replies.exists():
+            return CommentSerializer(obj.replies.all(), many=True).data
+        return []
+
+
 class BlogPostDetailSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
@@ -56,13 +71,15 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
     user_has_liked = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     user_rating = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField()
     
     class Meta:
         model = BlogPost
         fields = [
             'id', 'title', 'slug', 'content', 'author', 'category', 'tags',
             'is_published', 'created_at', 'updated_at', 'featured_image',
-            'publish_date', 'likes_count', 'user_has_liked', 'average_rating', 'user_rating'
+            'publish_date', 'likes_count', 'user_has_liked', 'average_rating', 'user_rating',
+            'comments'
         ]
     
     def get_likes_count(self, obj):
@@ -89,3 +106,8 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
             except Rating.DoesNotExist:
                 pass
         return None
+        
+    def get_comments(self, obj):
+        # Only get top-level comments (no parent)
+        comments = obj.comments.filter(parent=None)
+        return CommentSerializer(comments, many=True, context=self.context).data

@@ -85,3 +85,20 @@ class Rating(models.Model):
     
     def __str__(self):
         return f"{self.user.username} rated {self.post.title} {self.value}/5"
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    content = models.TextField()
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Comment'
+        verbose_name_plural = 'Comments'
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.user.username}'s comment on {self.post.title}"

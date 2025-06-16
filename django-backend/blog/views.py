@@ -3,14 +3,15 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.utils import timezone
 from django.db.models import Avg
-from .models import BlogPost, Category, Tag, Like, Rating
+from .models import BlogPost, Category, Tag, Like, Rating, Comment
 from .serializers import (
     BlogPostListSerializer, 
     BlogPostDetailSerializer,
     CategorySerializer,
     TagSerializer,
     LikeSerializer,
-    RatingSerializer
+    RatingSerializer,
+    CommentSerializer
 )
 
 class BlogPostViewSet(viewsets.ReadOnlyModelViewSet):
@@ -97,6 +98,24 @@ class BlogPostViewSet(viewsets.ReadOnlyModelViewSet):
             'rating': value,
             'average_rating': avg_rating
         }, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        
+    @action(detail=True, methods=['get', 'post'], permission_classes=[permissions.IsAuthenticatedOrReadOnly])
+    def comments(self, request, slug=None):
+        post = self.get_object()
+        
+        if request.method == 'GET':
+            # Get only top-level comments for this post
+            comments = post.comments.filter(parent=None)
+            serializer = CommentSerializer(comments, many=True, context={'request': request})
+            return Response(serializer.data)
+        
+        elif request.method == 'POST':
+            # Create a new comment
+            serializer = CommentSerializer(data=request.data, context={'request': request})
+            if serializer.is_valid():
+                serializer.save(user=request.user, post=post)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
@@ -107,3 +126,45 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     lookup_field = 'slug'
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Filter by post if post_id is provided
+        post_id = self.request.query_params.get('post_id', None)
+        if post_id:
+            queryset = queryset.filter(post_id=post_id)
+            
+        # Only return top-level comments (no parent) unless specified
+        parent_id = self.request.query_params.get('parent_id', None)
+        if parent_id:
+            queryset = queryset.filter(parent_id=parent_id)
+        else:
+            queryset = queryset.filter(parent=None)
+            
+        return queryset
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+    
+    def update(self, request, *args, **kwargs):
+        comment = self.get_object()
+        # Only allow the comment owner to update it
+        if comment.user != request.user:
+            return Response({'error': 'You do not have permission to edit this comment.'}, 
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        comment = self.get_object()
+        # Only allow the comment owner to delete it
+        if comment.user != request.user:
+            return Response({'error': 'You do not have permission to delete this comment.'}, 
+                            status=status.HTTP_403_FORBIDDEN)
+        return super().destroy(request, *args, **kwargs)
