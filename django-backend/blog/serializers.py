@@ -51,16 +51,19 @@ class RatingSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Comment
         fields = ['id', 'post', 'user', 'content', 'parent', 'created_at', 'updated_at', 'replies']
-        read_only_fields = ['id', 'created_at', 'updated_at']
-    
+        read_only_fields = ['user', 'post', 'created_at', 'updated_at'] # Added 'post' here
+
     def get_replies(self, obj):
-        if obj.replies.exists():
-            return CommentSerializer(obj.replies.all(), many=True).data
-        return []
+        # A comment is a parent if its 'parent' field is None
+        if obj.parent is None:
+            # Access child comments using the related_name 'replies'
+            replies = obj.replies.all()
+            return CommentSerializer(replies, many=True, context=self.context).data
+        return None
 
 
 class BlogPostDetailSerializer(serializers.ModelSerializer):
