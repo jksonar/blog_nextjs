@@ -1,11 +1,40 @@
 from rest_framework import serializers
-from .models import BlogPost, Category, Tag, Like, Rating, Comment
-from django.contrib.auth.models import User
+from django.db.models import Avg
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core import exceptions
+from .models import BlogPost, Category, Tag, Like, Rating, Comment, CustomUser
 
-class UserSerializer(serializers.ModelSerializer):
+User = get_user_model()
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'avatar']
+        read_only_fields = ['id']
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name']
+        fields = ['username', 'email', 'password']
+
+    def validate(self, data):
+        # Validate password strength
+        try:
+            validate_password(data['password'], user=User(**data))
+        except exceptions.ValidationError as e:
+            raise serializers.ValidationError({'password': list(e.messages)})
+        return data
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            password=validated_data['password']
+        )
+        return user
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,20 +47,35 @@ class TagSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'slug']
 
 class BlogPostListSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
-    
+    likes_count = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    comments_count = serializers.SerializerMethodField()
+
     class Meta:
         model = BlogPost
         fields = [
-            'id', 'title', 'slug', 'author', 'category', 'tags',
-            'is_published', 'created_at', 'updated_at', 'featured_image',
-            'publish_date'
+            'id', 'title', 'slug', 'author', 'category', 'tags', 
+            'likes_count', 'average_rating', 'comments_count', 
+            'is_published', 'publish_date', 'created_at', 'updated_at'
         ]
 
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+
+    def get_average_rating(self, obj):
+        ratings = obj.ratings.all()
+        if not ratings:
+            return None
+        return obj.ratings.aggregate(Avg('value'))['value__avg']
+
+    def get_comments_count(self, obj):
+        return obj.comments.count()
+
 class LikeSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = CustomUserSerializer(read_only=True)
     
     class Meta:
         model = Like
@@ -40,7 +84,7 @@ class LikeSerializer(serializers.ModelSerializer):
 
 
 class RatingSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = CustomUserSerializer(read_only=True)
     
     class Meta:
         model = Rating
@@ -49,7 +93,7 @@ class RatingSerializer(serializers.ModelSerializer):
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    user = UserSerializer(read_only=True)
+    user = CustomUserSerializer(read_only=True)
     replies = serializers.SerializerMethodField()
 
     class Meta:
@@ -67,39 +111,38 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class BlogPostDetailSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
+    author = CustomUserSerializer(read_only=True)
     category = CategorySerializer(read_only=True)
     tags = TagSerializer(many=True, read_only=True)
     likes_count = serializers.SerializerMethodField()
     user_has_liked = serializers.SerializerMethodField()
     average_rating = serializers.SerializerMethodField()
     user_rating = serializers.SerializerMethodField()
-    comments = serializers.SerializerMethodField()
-    
+    comments = CommentSerializer(many=True, read_only=True)
+
     class Meta:
         model = BlogPost
         fields = [
             'id', 'title', 'slug', 'content', 'author', 'category', 'tags',
-            'is_published', 'created_at', 'updated_at', 'featured_image',
-            'publish_date', 'likes_count', 'user_has_liked', 'average_rating', 'user_rating',
-            'comments'
+            'likes_count', 'user_has_liked', 'average_rating', 'user_rating',
+            'comments', 'is_published', 'publish_date', 'created_at', 'updated_at'
         ]
-    
+
     def get_likes_count(self, obj):
         return obj.likes.count()
-    
+
     def get_user_has_liked(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
             return obj.likes.filter(user=request.user).exists()
         return False
-    
+
     def get_average_rating(self, obj):
         ratings = obj.ratings.all()
         if not ratings:
             return None
-        return sum(rating.value for rating in ratings) / ratings.count()
-    
+        return obj.ratings.aggregate(Avg('value'))['value__avg']
+
     def get_user_rating(self, obj):
         request = self.context.get('request')
         if request and request.user.is_authenticated:
@@ -108,9 +151,3 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
                 return rating.value
             except Rating.DoesNotExist:
                 pass
-        return None
-        
-    def get_comments(self, obj):
-        # Only get top-level comments (no parent)
-        comments = obj.comments.filter(parent=None)
-        return CommentSerializer(comments, many=True, context=self.context).data

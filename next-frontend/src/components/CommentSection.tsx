@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react';
 import { fetchComments, createComment, updateComment, deleteComment, Comment } from '@/utils/api';
 import { FiUser, FiClock, FiMessageSquare, FiEdit, FiTrash, FiSend, FiX } from 'react-icons/fi';
 import { format } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CommentSectionProps {
   slug: string;
 }
 
 export default function CommentSection({ slug }: CommentSectionProps) {
+  const { user: currentUser } = useAuth(); // Get the current authenticated user
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
@@ -166,6 +168,7 @@ export default function CommentSection({ slug }: CommentSectionProps) {
 
   // Render a single comment
   const renderComment = (comment: Comment, isReply = false, parentId?: number) => {
+    const isAuthor = currentUser && currentUser.id === comment.user.id; // Check if the current user is the author
     const formattedDate = format(new Date(comment.created_at), 'MMM dd, yyyy h:mm a');
     
     return (
@@ -190,23 +193,27 @@ export default function CommentSection({ slug }: CommentSectionProps) {
           </div>
           
           <div className="flex space-x-2">
-            <button 
-              onClick={() => {
-                setEditingComment(comment.id);
-                setEditContent(comment.content);
-              }}
-              className="text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
-              aria-label="Edit comment"
-            >
-              <FiEdit size={16} />
-            </button>
-            <button 
-              onClick={() => handleDeleteComment(comment.id, parentId)}
-              className="text-gray-500 hover:text-red-600 dark:hover:text-red-400"
-              aria-label="Delete comment"
-            >
-              <FiTrash size={16} />
-            </button>
+            {isAuthor && (
+              <button 
+                onClick={() => {
+                  setEditingComment(comment.id);
+                  setEditContent(comment.content);
+                }}
+                className="text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
+                aria-label="Edit comment"
+              >
+                <FiEdit size={16} />
+              </button>
+            )}
+            {isAuthor && (
+              <button 
+                onClick={() => handleDeleteComment(comment.id, parentId)}
+                className="text-gray-500 hover:text-red-600 dark:hover:text-red-400"
+                aria-label="Delete comment"
+              >
+                <FiTrash size={16} />
+              </button>
+            )}
           </div>
         </div>
         

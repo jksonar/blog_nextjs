@@ -48,7 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         // Verify token and get user info
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/user/me/`, {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/users/me/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -80,7 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       Cookies.set('refresh_token', refresh, { expires: 1 }); // 1 day
 
       // Get user info
-      const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/user/me/`, {
+      const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/users/me/`, {
         headers: {
           Authorization: `Bearer ${access}`,
         },
@@ -100,7 +100,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/register/`, {
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/register/`, {
         username,
         email,
         password,

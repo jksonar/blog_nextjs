@@ -1,7 +1,17 @@
 from django.db import models
+from django.utils import timezone
 from django.utils.text import slugify
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+from django.conf import settings
+from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+
+class CustomUser(AbstractUser):
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+
+
+    def __str__(self):
+        return self.username
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -34,11 +44,15 @@ class Tag(models.Model):
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
+class PublishedManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_published=True, publish_date__lte=timezone.now())
+
 class BlogPost(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
     content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='blog_posts')
     tags = models.ManyToManyField(Tag, blank=True, related_name='blog_posts')
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='blog_posts')
     is_published = models.BooleanField(default=False)
@@ -46,6 +60,9 @@ class BlogPost(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     featured_image = models.ImageField(upload_to='blog_images/%Y/%m/', blank=True, null=True)
     publish_date = models.DateTimeField(blank=True, null=True)
+
+    objects = models.Manager()  # Default manager
+    published = PublishedManager()  # Custom manager for published posts
     
     def __str__(self):
         return self.title
@@ -57,7 +74,7 @@ class BlogPost(models.Model):
 
 
 class Like(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='likes')
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='likes')
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -71,7 +88,7 @@ class Like(models.Model):
 
 
 class Rating(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ratings')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ratings')
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='ratings')
     value = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
     created_at = models.DateTimeField(auto_now_add=True)
@@ -89,7 +106,7 @@ class Rating(models.Model):
 
 class Comment(models.Model):
     post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, related_name='comments')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
     content = models.TextField()
     parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -102,3 +119,4 @@ class Comment(models.Model):
     
     def __str__(self):
         return f"{self.user.username}'s comment on {self.post.title}"
+

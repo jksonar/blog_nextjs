@@ -4,6 +4,12 @@ from rest_framework.decorators import action
 from django.utils import timezone
 from django.db.models import Avg
 from .models import BlogPost, Category, Tag, Like, Rating, Comment
+from rest_framework import viewsets, filters, permissions, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
+from django.utils import timezone
+from django.db.models import Avg
+from .models import BlogPost, Category, Tag, Like, Rating, Comment
 from .serializers import (
     BlogPostListSerializer, 
     BlogPostDetailSerializer,
@@ -13,14 +19,27 @@ from .serializers import (
     RatingSerializer,
     CommentSerializer
 )
+from .permissions import IsAuthorOrReadOnly
 
-class BlogPostViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = BlogPost.objects.filter(is_published=True, publish_date__lte=timezone.now())
+class BlogPostViewSet(viewsets.ModelViewSet):
+    queryset = BlogPost.objects.all()
+    permission_classes = [IsAuthorOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'content']
     ordering_fields = ['created_at', 'publish_date']
     lookup_field = 'slug'
-    
+
+
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_destroy(self, instance):
+        instance.delete()
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return BlogPostDetailSerializer
@@ -132,10 +151,18 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
     
     def get_queryset(self):
         queryset = super().get_queryset()
         
+        # For retrieve, update, and destroy actions, we don't want to filter by post_id or parent_id
+        # as the comment is identified by its primary key (id).
+        if self.action in ['retrieve', 'update', 'destroy']:
+            return queryset
+
         # Filter by post if post_id is provided
         post_id = self.request.query_params.get('post_id', None)
         if post_id:
@@ -150,15 +177,6 @@ class CommentViewSet(viewsets.ModelViewSet):
             
         return queryset
     
-    # perform_create is likely not used if comments are created via BlogPostViewSet's comments action
-    # def perform_create(self, serializer):
-    #     # Ensure post is also handled if this endpoint is used directly for creation
-    #     # post_id = self.request.data.get('post') 
-    #     # if not post_id:
-    #     #     raise serializers.ValidationError({'post': 'This field is required.'})
-    #     # post = BlogPost.objects.get(id=post_id)
-    #     serializer.save(user=self.request.user) #, post=post)
-
     def update(self, request, *args, **kwargs):
         comment = self.get_object()
         if comment.user != request.user:
