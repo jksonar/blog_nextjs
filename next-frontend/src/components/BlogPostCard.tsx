@@ -1,7 +1,8 @@
-import Link from 'next/link';
+"use client";
+
 import Image from 'next/image';
 import { BlogPost } from '@/utils/api';
-
+import Link from 'next/link';
 
 
 interface BlogPostCardProps {
@@ -20,9 +21,6 @@ export default function BlogPostCard({ post, onDelete }: BlogPostCardProps) {
             layout="fill"
             objectFit="cover"
             className="rounded-t-lg"
-            onError={(e) => {
-              console.log('Image failed to load:', e.currentTarget.src);
-            }}
           />
         </div>
       )}

@@ -72,9 +72,6 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               fill
               className="object-cover"
               priority
-              onError={(e) => {
-                console.log('Image failed to load:', e.currentTarget.src);
-              }}
             />
           </div>
         )}
@@ -140,6 +137,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             userHasLiked={post.user_has_liked || false}
             userRating={post.user_rating ?? null}
             averageRating={post.average_rating ?? null}
+            className="rounded-t-lg"
           />
         </div>
         

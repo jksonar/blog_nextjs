@@ -9,6 +9,7 @@ interface BlogInteractionBarProps {
   userHasLiked: boolean;
   userRating: number | null;
   averageRating: number | null;
+  className?: string; // Add this line
 }
 
 export default function BlogInteractionBar({
@@ -16,10 +17,11 @@ export default function BlogInteractionBar({
   likesCount,
   userHasLiked,
   userRating,
-  averageRating
+  averageRating,
+  className
 }: BlogInteractionBarProps) {
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-center gap-6 py-4 border-t border-b border-gray-200 dark:border-gray-800 my-6">
+    <div className={`flex flex-col sm:flex-row items-center justify-center gap-6 py-4 border-t border-b border-gray-200 dark:border-gray-800 my-6 ${className || ''}`}>
       <div className="flex flex-col items-center">
         <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Like this post</h3>
         <LikeButton 

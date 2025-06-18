@@ -34,9 +34,6 @@ const BlogCard = ({ post }: BlogCardProps) => {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              onError={(e) => {
-                console.log('Image failed to load:', e.currentTarget.src);
-              }}
             />
           ) : (
             <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
@@ -90,6 +87,7 @@ const BlogCard = ({ post }: BlogCardProps) => {
           Read more →
         </Link>
       </div>
+      className="rounded-t-lg"
     </div>
   );
 };
