@@ -12,7 +12,18 @@ export const metadata = {
 
 export default async function BlogPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   // Fetch blog posts without filters initially
-  const blogData = await fetchBlogPosts({}).catch(() => ({ results: [], count: 0 }));
+  // Remove this line since params is already declared later in the code
+
+  const params = await searchParams; // Ensure params is declared first
+  const categoryParam = params?.category;
+  const tagParam = params?.tag;
+  const pageParam = params?.page;
+  const currentPage = pageParam ? parseInt(pageParam as string, 10) : 1;
+
+  const blogData = await fetchBlogPosts({
+    category: typeof categoryParam === 'string' ? categoryParam : undefined,
+    tag: typeof tagParam === 'string' ? tagParam : undefined,
+  }).catch(() => ({ results: [], count: 0 }));
   const posts = blogData.results || [];
   const totalPosts = blogData.count || 0;
   
@@ -27,11 +38,6 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
   // Calculate pagination
   const postsPerPage = 9;
   const totalPages = Math.ceil(totalPosts / postsPerPage);
-  
-  // Properly await searchParams before accessing its properties
-  const params = await searchParams;
-  const pageParam = params?.page;
-  const currentPage = pageParam ? parseInt(pageParam as string, 10) : 1;
   
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -49,7 +55,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
         <div className="flex flex-wrap gap-2">
           <Link 
             href="/blog"
-            className={`px-4 py-2 rounded-full text-sm font-medium bg-blue-600 text-white`}
+            className={`px-4 py-2 rounded-full text-sm font-medium ${!categoryParam && !tagParam ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
           >
             All Posts
           </Link>
@@ -58,8 +64,8 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
           {categories.map((cat) => (
             <Link 
               key={cat.id}
-              href={`/blog?category=${encodeURIComponent(cat.name)}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700`}
+              href={`/blog?category=${encodeURIComponent(cat.slug)}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium ${categoryParam === cat.slug ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
             >
               {cat.name}
             </Link>
@@ -69,8 +75,8 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
           {tags.map((t) => (
             <Link 
               key={t.id}
-              href={`/blog?tag=${encodeURIComponent(t.name)}`}
-              className={`px-4 py-2 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700`}
+              href={`/blog?tag=${encodeURIComponent(t.slug)}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium ${tagParam === t.slug ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700'}`}
             >
               #{t.name}
             </Link>
