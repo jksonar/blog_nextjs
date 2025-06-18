@@ -133,7 +133,7 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
             'id', 'title', 'slug', 'content', 'author', 'category', 'tags',
             'likes_count', 'user_has_liked', 'average_rating', 'user_rating',
             'comments', 'is_published', 'publish_date', 'created_at', 'updated_at',
-            'category_slug', 'tags_slugs'
+            'category_slug', 'tags_slugs', 'featured_image'
         ]
         read_only_fields = ['slug', 'likes_count', 'user_has_liked', 'average_rating', 'user_rating', 'comments']
 
@@ -159,6 +159,7 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
         instance.title = validated_data.get('title', instance.title)
         instance.content = validated_data.get('content', instance.content)
         instance.is_published = validated_data.get('is_published', instance.is_published)
+        instance.featured_image = validated_data.get('featured_image', instance.featured_image)
 
         if category_slug is not None:
             instance.category = category_slug

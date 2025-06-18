@@ -44,11 +44,8 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    // Error is used to determine the fallback metadata
-    return {
-      title: 'Blog Post Not Found - Blog Site',
-      description: 'The requested blog post could not be found',
-    };
+    // If fetching fails, let Next.js handle the notFound() for metadata
+    throw new Error('Blog post not found for metadata');
   }
 }
 
@@ -75,6 +72,9 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
               fill
               className="object-cover"
               priority
+              onError={(e) => {
+                console.log('Image failed to load:', e.currentTarget.src);
+              }}
             />
           </div>
         )}
@@ -161,7 +161,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
     );
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    // Error is used to trigger the notFound() function
-    notFound();
+    // If fetching fails, throw an error to trigger Next.js's notFound() handling
+    throw new Error('Blog post not found');
   }
 }

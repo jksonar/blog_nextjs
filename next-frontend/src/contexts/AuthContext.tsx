@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import apiClient from '@/utils/apiClient';
 import Cookies from 'js-cookie';
 
 interface User {
@@ -37,7 +37,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const api = apiClient;
+
+    useEffect(() => {
     // Check if user is logged in on initial load
     const checkAuth = async () => {
       const token = Cookies.get('access_token');
@@ -48,11 +50,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         // Verify token and get user info
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/users/me/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await api.get('/users/me/');
         setUser(response.data);
       } catch (error) {
         // Token might be invalid or expired
@@ -68,10 +66,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/token/`, {
-        username,
-        password,
-      });
+      const response = await api.post('/token/', {
+         username,
+         password,
+       });
 
       const { access, refresh } = response.data;
       
@@ -80,11 +78,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       Cookies.set('refresh_token', refresh, { expires: 1 }); // 1 day
 
       // Get user info
-      const userResponse = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/users/me/`, {
-        headers: {
-          Authorization: `Bearer ${access}`,
-        },
-      });
+      const userResponse = await api.get('/users/me/');
 
       setUser(userResponse.data);
     } catch (error) {
@@ -100,7 +94,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const register = async (username: string, email: string, password: string) => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'}/auth/register/`, {
+      await api.post('/auth/register/', {
         username,
         email,
         password,

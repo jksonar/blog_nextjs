@@ -1,7 +1,7 @@
-import axiosInstance from './axiosConfig';
+import apiClient from './apiClient';
 
 // Use the configured axios instance with JWT authentication
-const api = axiosInstance;
+const api = apiClient;
 
 // Types based on Django models
 export interface User {
@@ -41,6 +41,7 @@ export interface BlogPost {
   average_rating?: number | null;
   user_rating?: number | null;
   comments?: Comment[];
+  image?: string; // Added for consistency with BlogPostCard
 }
 
 export interface Comment {
@@ -55,7 +56,7 @@ export interface Comment {
 }
 
 // API functions
-export const fetchBlogPosts = async (params?: { category?: string; tag?: string }) => {
+export const fetchBlogPosts = async (params?: { category?: string; tag?: string; author?: string }) => {
   try {
     const response = await api.get<{ results: BlogPost[]; count: number }>('/posts/', { params });
     return response.data;
@@ -182,7 +183,8 @@ export const updateBlogPost = async (
     content?: string;
     category_slug?: string;
     tags_slugs?: string[];
-  }
+    featured_image?: File; // Add featured_image to the type definition
+  } | FormData // Allow FormData as a valid type
 ) => {
   const response = await api.patch(`/blogposts/${slug}/`, postData);
   return response.data;

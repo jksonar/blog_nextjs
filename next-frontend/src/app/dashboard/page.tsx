@@ -2,20 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { fetchBlogPosts, deleteBlogPost } from '@/utils/api';
+import { fetchBlogPosts, deleteBlogPost, BlogPost } from '@/utils/api';
 import Link from 'next/link';
-import Image from 'next/image';
+import BlogPostCard from '@/components/BlogPostCard';
 
-interface BlogPost {
-  id: number;
-  title: string;
-  slug: string;
-  image: string;
-  publish_date: string;
-  category: { name: string; slug: string };
-  tags: { name: string; slug: string }[];
-  author: { username: string };
-}
+
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -34,7 +25,14 @@ export default function DashboardPage() {
         // Assuming the API has a way to filter posts by author, e.g., /api/blogposts/?author=username
         // This might require a modification to the Django backend's BlogPostViewSet to filter by author
         const posts = await fetchBlogPosts({ author: user.username });
-        setUserBlogPosts(posts.results);
+        setUserBlogPosts(posts.results.map(post => ({
+          ...post,
+          image: post.featured_image || '', // Map featured_image from API to image, ensure it's always a string
+          publish_date: post.publish_date || '', // Ensure publish_date is a string
+          category: post.category || { id: 0, name: '', slug: '' }, // Ensure category is an object with id
+          tags: post.tags || [], // Ensure tags is an array
+          author: post.author ? { ...post.author } : { id: 0, username: '', first_name: '', last_name: '' } // Ensure author conforms to User interface
+        })));
       } catch (err) {
         setError('Failed to fetch your blog posts.');
         console.error(err);
@@ -93,48 +91,7 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {userBlogPosts.map((post) => (
-            <div key={post.id} className="bg-white shadow-md rounded-lg overflow-hidden">
-              {post.image && (
-                <div className="relative w-full h-48">
-                  <Image
-                    src={post.image}
-                    alt={post.title}
-                    layout="fill"
-                    objectFit="cover"
-                    className="rounded-t-lg"
-                  />
-                </div>
-              )}
-              <div className="p-4">
-                <h3 className="text-xl font-semibold mb-2">
-                  <Link href={`/blog/${post.slug}`} className="hover:text-blue-600">
-                    {post.title}
-                  </Link>
-                </h3>
-                <p className="text-gray-600 text-sm mb-2">Published on {new Date(post.publish_date).toLocaleDateString()}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <Link href={`/blog?category=${post.category.slug}`} className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full hover:bg-gray-300">
-                    {post.category.name}
-                  </Link>
-                  {post.tags.map(tag => (
-                    <Link key={tag.slug} href={`/blog?tag=${tag.slug}`} className="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full hover:bg-gray-300">
-                      {tag.name}
-                    </Link>
-                  ))}
-                </div>
-                <div className="flex justify-end space-x-2">
-                  <Link href={`/dashboard/edit-blog/${post.slug}`} className="bg-green-500 hover:bg-green-700 text-white text-sm py-1 px-3 rounded">
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(post.slug)}
-                    className="bg-red-500 hover:bg-red-700 text-white text-sm py-1 px-3 rounded"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
+            <BlogPostCard key={post.id} post={post} onDelete={handleDelete} />
           ))}
         </div>
       )}

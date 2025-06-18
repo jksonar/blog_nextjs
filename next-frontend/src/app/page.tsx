@@ -20,6 +20,9 @@ export default async function Home() {
             fill
             className="object-cover"
             priority
+            onError={(e) => {
+              console.log('Image failed to load:', e.currentTarget.src);
+            }}
           />
         </div>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
