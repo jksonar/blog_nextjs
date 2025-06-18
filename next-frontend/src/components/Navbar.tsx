@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -59,6 +59,15 @@ const Navbar = () => {
             <div className="ml-4 flex items-center space-x-2">
               {isAuthenticated ? (
                 <>
+                  <Link
+                    href="/dashboard"
+                    className={`px-3 py-2 rounded-md text-sm font-medium ${pathname === '/dashboard'
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                  >
+                    Dashboard
+                  </Link>
                   <span className="text-sm text-gray-700 dark:text-gray-300 mr-2">
                     {user?.username}
                   </span>
@@ -131,6 +140,16 @@ const Navbar = () => {
             <div className="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4">
               {isAuthenticated ? (
                 <>
+                  <Link
+                    href="/dashboard"
+                    className={`block px-3 py-2 rounded-md text-base font-medium ${pathname === '/dashboard'
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Dashboard
+                  </Link>
                   <div className="px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300">
                     Signed in as {user?.username}
                   </div>

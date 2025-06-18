@@ -120,13 +120,54 @@ class BlogPostDetailSerializer(serializers.ModelSerializer):
     user_rating = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
 
+    category_slug = serializers.SlugRelatedField(
+        queryset=Category.objects.all(), slug_field='slug', write_only=True, required=False, allow_null=True
+    )
+    tags_slugs = serializers.SlugRelatedField(
+        queryset=Tag.objects.all(), slug_field='slug', write_only=True, many=True, required=False
+    )
+
     class Meta:
         model = BlogPost
         fields = [
             'id', 'title', 'slug', 'content', 'author', 'category', 'tags',
             'likes_count', 'user_has_liked', 'average_rating', 'user_rating',
-            'comments', 'is_published', 'publish_date', 'created_at', 'updated_at'
+            'comments', 'is_published', 'publish_date', 'created_at', 'updated_at',
+            'category_slug', 'tags_slugs'
         ]
+        read_only_fields = ['slug', 'likes_count', 'user_has_liked', 'average_rating', 'user_rating', 'comments']
+
+    def create(self, validated_data):
+        category_slug = validated_data.pop('category_slug', None)
+        tags_slugs = validated_data.pop('tags_slugs', [])
+
+        blog_post = BlogPost.objects.create(**validated_data)
+
+        if category_slug:
+            blog_post.category = category_slug
+            blog_post.save()
+
+        if tags_slugs:
+            blog_post.tags.set(tags_slugs)
+
+        return blog_post
+
+    def update(self, instance, validated_data):
+        category_slug = validated_data.pop('category_slug', None)
+        tags_slugs = validated_data.pop('tags_slugs', None)
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.content = validated_data.get('content', instance.content)
+        instance.is_published = validated_data.get('is_published', instance.is_published)
+
+        if category_slug is not None:
+            instance.category = category_slug
+        
+        if tags_slugs is not None:
+            instance.tags.set(tags_slugs)
+
+        instance.save()
+        return instance
 
     def get_likes_count(self, obj):
         return obj.likes.count()

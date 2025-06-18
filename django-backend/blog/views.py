@@ -23,7 +23,7 @@ from .permissions import IsAuthorOrReadOnly
 
 class BlogPostViewSet(viewsets.ModelViewSet):
     queryset = BlogPost.objects.all()
-    permission_classes = [IsAuthorOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['title', 'content']
     ordering_fields = ['created_at', 'publish_date']
@@ -35,13 +35,19 @@ class BlogPostViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
     def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
+        # Ensure the author is not changed during update
+        instance = self.get_object()
+        if instance.author != self.request.user:
+            self.permission_denied(self.request, message='You do not have permission to edit this post.')
+        serializer.save()
 
     def perform_destroy(self, instance):
+        if instance.author != self.request.user:
+            self.permission_denied(self.request, message='You do not have permission to delete this post.')
         instance.delete()
 
     def get_serializer_class(self):
-        if self.action == 'retrieve':
+        if self.action == 'retrieve' or self.action == 'create' or self.action == 'update':
             return BlogPostDetailSerializer
         elif self.action == 'like' or self.action == 'unlike':
             return LikeSerializer
@@ -61,6 +67,11 @@ class BlogPostViewSet(viewsets.ModelViewSet):
         tag_slug = self.request.query_params.get('tag', None)
         if tag_slug:
             queryset = queryset.filter(tags__slug=tag_slug)
+
+        # Filter by author
+        author_username = self.request.query_params.get('author', None)
+        if author_username:
+            queryset = queryset.filter(author__username=author_username)
             
         return queryset
     

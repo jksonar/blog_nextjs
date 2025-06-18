@@ -161,13 +161,36 @@ export const updateComment = async (commentId: number, content: string) => {
 };
 
 export const deleteComment = async (commentId: number) => {
-  try {
-    const response = await api.delete(`/comments/${commentId}/`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error deleting comment ${commentId}:`, error);
-    throw error;
+  const response = await api.delete(`/comments/${commentId}/`);
+  return response.data;
+};
+
+export const createBlogPost = async (postData: {
+  title: string;
+  content: string;
+  category_slug?: string;
+  tags_slugs?: string[];
+}) => {
+  const response = await api.post('/blogposts/', postData);
+  return response.data;
+};
+
+export const updateBlogPost = async (
+  slug: string,
+  postData: {
+    title?: string;
+    content?: string;
+    category_slug?: string;
+    tags_slugs?: string[];
   }
+) => {
+  const response = await api.patch(`/blogposts/${slug}/`, postData);
+  return response.data;
+};
+
+export const deleteBlogPost = async (slug: string) => {
+  const response = await api.delete(`/blogposts/${slug}/`);
+  return response.data;
 };
 
 export default api;
