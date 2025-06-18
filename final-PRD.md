@@ -1,6 +1,4 @@
-Okay, I've combined the information from your provided PRD sections into a single, comprehensive document. Here it is:
-
-## Combined Product Requirements Document (PRD) – Blog Website
+### Product Requirements Document (PRD) – Blog Website
 
 ### 1. Overview
 
@@ -14,10 +12,13 @@ A modern blog platform with:
 * User-generated content (UGC) and user authentication.
 * Users can register, log in/out, reset passwords.
 * Authenticated users can create, update, delete their own blog posts.
+* Authenticated users can create, update, delete their own comments.
+* Authenticated users can like, dislike, and rate blog posts.
 * All users can comment on any blog post.
 * Each user has a profile page.
 * Comments with replies.
 * Interactive features (likes, ratings, rich text).
+* search filter by category, tag, author, date, etc.
 
 ### 2. Goals
 

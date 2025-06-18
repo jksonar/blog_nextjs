@@ -150,21 +150,27 @@ class CommentViewSet(viewsets.ModelViewSet):
             
         return queryset
     
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-    
+    # perform_create is likely not used if comments are created via BlogPostViewSet's comments action
+    # def perform_create(self, serializer):
+    #     # Ensure post is also handled if this endpoint is used directly for creation
+    #     # post_id = self.request.data.get('post') 
+    #     # if not post_id:
+    #     #     raise serializers.ValidationError({'post': 'This field is required.'})
+    #     # post = BlogPost.objects.get(id=post_id)
+    #     serializer.save(user=self.request.user) #, post=post)
+
     def update(self, request, *args, **kwargs):
         comment = self.get_object()
-        # Only allow the comment owner to update it
         if comment.user != request.user:
-            return Response({'error': 'You do not have permission to edit this comment.'}, 
-                            status=status.HTTP_403_FORBIDDEN)
+            self.permission_denied(
+                request, message='You do not have permission to edit this comment.'
+            )
         return super().update(request, *args, **kwargs)
     
     def destroy(self, request, *args, **kwargs):
         comment = self.get_object()
-        # Only allow the comment owner to delete it
         if comment.user != request.user:
-            return Response({'error': 'You do not have permission to delete this comment.'}, 
-                            status=status.HTTP_403_FORBIDDEN)
+            self.permission_denied(
+                request, message='You do not have permission to delete this comment.'
+            )
         return super().destroy(request, *args, **kwargs)
