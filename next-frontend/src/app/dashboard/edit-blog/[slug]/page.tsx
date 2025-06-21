@@ -29,22 +29,17 @@ export default function EditBlogPage({ params }: EditBlogPageProps) {
   useEffect(() => {
     const getBlogPost = async () => {
       try {
-        const post = await fetchBlogPostBySlug(slug);
-        if (user && post.author.username !== user.username) {
+        const fetchedPost = await fetchBlogPostBySlug(slug);
+        if (user && fetchedPost.author.username !== user.username) {
           setError('You do not have permission to edit this post.');
           setLoading(false);
           return;
-        setPost(post); // Set the post state
-        setTitle(post.title || '');
-        setContent(post.content || '');
-        setCategory(post.category?.slug || '');
-        setTags(post.tags?.map((tag: { slug: string }) => tag.slug).join(', ') || '');
-      }
-        setTitle(post.title);
-        setContent(post.content || '');
-        setCategory(post.category?.slug || '');
-        setTags(post.tags.map((tag: { slug: string }) => tag.slug).join(', '));
-
+        }
+        setPost(fetchedPost); // Set the post state
+        setTitle(fetchedPost.title || '');
+        setContent(fetchedPost.content || '');
+        setCategory(fetchedPost.category?.slug || '');
+        setTags(fetchedPost.tags?.map((tag: { slug: string }) => tag.slug).join(', ') || '');
       } catch (err) {
         setError('Failed to fetch blog post.');
         console.log(err);

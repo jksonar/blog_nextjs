@@ -166,32 +166,18 @@ export const deleteComment = async (commentId: number) => {
   return response.data;
 };
 
-export const createBlogPost = async (postData: {
-  title: string;
-  content: string;
-  category_slug?: string;
-  tags_slugs?: string[];
-}) => {
-  const response = await api.post('/blogposts/', postData);
+export const createBlogPost = async (postData: FormData) => {
+  const response = await api.post('/posts/', postData);
   return response.data;
 };
 
-export const updateBlogPost = async (
-  slug: string,
-  postData: {
-    title?: string;
-    content?: string;
-    category_slug?: string;
-    tags_slugs?: string[];
-    featured_image?: File; // Add featured_image to the type definition
-  } | FormData // Allow FormData as a valid type
-) => {
-  const response = await api.patch(`/blogposts/${slug}/`, postData);
+export const updateBlogPost = async (slug: string, postData: FormData) => {
+  const response = await api.patch(`/posts/${slug}/`, postData);
   return response.data;
 };
 
 export const deleteBlogPost = async (slug: string) => {
-  const response = await api.delete(`/blogposts/${slug}/`);
+  const response = await api.delete(`/posts/${slug}/`);
   return response.data;
 };
 
